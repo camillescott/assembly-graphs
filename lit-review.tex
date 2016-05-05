@@ -1,7 +1,9 @@
 \documentclass[]{article}
 \usepackage[numbers]{natbib}
 \usepackage{bibentry}
+\usepackage[american]{babel}
 \nobibliography*
+
 %opening
 \title{Growing Assembly Graphs:\\
 	   A Brief Literature Review}
@@ -18,18 +20,51 @@ a complete genome are explored; the construction of assembly graphs from sampled
 fragments; and the assembly process itself, which is mostly an exercise in the 
 interrogation of these graphs. To better understand our problem, I will review several 
 papers that span these topics. The first is one of the original papers describing the
-sequencing statistics; the second, a 
-detailed treatment of the assembly problem and through the lens of different assembly
-graphs' potentials to fully represent the information in a genome; the third examines
-percolation theory in probabilistic de Bruijn graphs, which serves as a useful jumping-off
-point for our project.
+sequencing coverage statistics; the second, a 
+detailed treatment of the assembly problem through the lens of assembly
+graphs' potentials to fully represent the information in a genome; and the third, an 
+examination of percolation theory in probabilistic de Bruijn graphs which serves as a 
+useful jumping-off point for our project.
 \end{abstract}
+
+\section{Original Project Proposal}
+
+
+
+A genome can be represented computationally as a sequence of letters representing 
+nucleotide bases, a string over the alphabet {A, C, G, T}. Current technology can’t 
+sequence an entire genome at once, but can sequence smaller randomly sampled subsets 
+(called reads), usually ranging from 100 to 10k bases, with varying degrees of error 
+(1-15\%). The computational challenge is the fragment assembly problem: given a multiset 
+of reads from a genome, reconstruct the original genome. Complexity arises from regions 
+with repeated patterns, sequencing errors, and multiple chromosomes. Methods to solve 
+this problems typically use assembly graphs, where reads are connected when there is an 
+overlap between them; the original sequence is estimated by walks through this graph. 
+
+Prior work on the problem has assumed the availability of the complete assembly graph; 
+that is, the algorithms are offline. While this approach has been sufficient at the scale 
+of sequencing projects thus far, the growing volume of sequence data suggests that an 
+online approach will eventually need to be adopted. To that end, we propose to develop an 
+arrival model of the assembly graph parameterized by depth of coverage, sequencing error 
+rate, and an estimator of the underlying genomic complexity. Such a model would aid in 
+the development of new online assembly strategies, providing the theoretical groundwork 
+for a new class of assemblers.
+
+Since this is an initial step for many biological experiments, the quality of results is 
+essential to any posterior analysis, be it a microbiome study or how a new drug interacts 
+with antibodies during treatment. Metagenomics assembly has particular opportunity for 
+discovery in this area; in these studies, a diverse community of potentially hundreds of 
+thousands of microorganisms are sequenced, with varying levels of genome similarity. The 
+assembly graph that results is extremely complex, and existing assemblers do not utilize 
+strategies capable of coping with the dozens of terabytes of data. A better model can 
+lead to improved methods, especially when facing the increasing complexity and amount of 
+data being generated.
 
 \section{Sequencing Statistics}
 
 \textbf{Paper}: \bibentry{roach_random_1995}
 
-Roach's work extended a coverage model original proposed by Lander and Waterman 
+Roach's work extended a coverage model originally proposed by Lander and Waterman 
 \cite{lander_genomic_1988}; the prior model is accurate at low redundancy, but not at the 
 higher redundancies present in shotgun studies. This paper came from the days of 
 "strategic sequencing," when 
@@ -67,7 +102,30 @@ inform any graph model we build.
 
 \section{Assembly Feasibility}
 
-\textbf{Paper}: \bibentry{bresler_optimal_2013} 
+\textbf{Paper}: \bibentry{bresler_optimal_2013}
+
+This work provides a new take on Roach's model. Roach's model does not consider repeats
+in the DNA sequence, which add considerable complexity to assembly graphs and the assembly
+process. In the absence of repeats, assembly graphs would be collections of disjoint
+components which nodes of degree $0$, $1$, or $2$. Repeats introduce cycles, and more
+directly, ambiguity to the ordering of traversals which determine the assembled sequence.
+Bresler \emph{et al.} study the \textbf{feasibility} of an assembly, whether 
+it is possible to construct the original sequence from a set of reads, and the 
+\textbf{optimality} of an algorithm in terms of their ability to reconstruct the original
+sequence when it is theoretically feasible. Feasibility is a "measure of the intrinsic 
+information each read provides about the DNA sequence," and is closely related to the 
+length and frequency of repeats in the original genome. This work features a number of 
+plots of the performance of specific graph and assembly paradigms versus the lower bound 
+on feasibility for increasing $L$. 
+
+The introduction of repetitive sequence is another step toward our growth model. Assembly 
+graphs will not be modeled exactly as traditional random graphs, because there is some 
+specific underlying sequence which they aim to represent; the properties of that sequence,
+such as its repeat content, will need to form the parameters of out model. It's also 
+worth noting that the authors identify a two critical points for increasing fragment 
+length at which feasibility is achieved with reasonable coverage depths; we may be able 
+to find some relationship between these critical points and the geometric phase 
+transition observed in \cite{pell_scaling_2012} and described in the next section.
 
 \section{Percolation in de Bruijn Graphs}
 \textbf{Paper}: \bibentry{pell_scaling_2012}
@@ -99,9 +157,17 @@ rates, the effect on the connectivity was similar to a geometric phase transitio
 false positives rates of about $0.18$, the average component size begins to grow rapidly. 
 This is first shown via simulation, and then studied with percolation theory. They used a 
 site percolation model where the probability $p$ of a site being active is equivalent to 
-the false positive rate of the bloom filter. 
+the false positive rate of the bloom filter.
 
-\bibliographystyle{ieeetr}
+This site percolation model should be relatively close to our model. However, rather than
+taking the false positive rate of the Bloom filter as $p$, we will need to leverage
+Roach's model for fragment coverage. Intuitively, we expect to see similar behavior with 
+respect to component size with increasing sequencing error as Pell \emph{et al.} did with 
+respect to increasing error in the Bloom filter. Between this and Bresler \emph{et al.}'s 
+critical points for assembly feasibility, we hope to identify other important phase 
+transitions in the assembly graph.
+
+\bibliographystyle{plainnat}
 \setcitestyle{numbers, open={[}, close={]}}
 \bibliography{assembly-graphs}
 
