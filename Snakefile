@@ -8,20 +8,27 @@ configfile: "config.json"
 
 rule all:
     input:
-#      expand("outputs/cdbg/{ksize}/invertebrate/{genome}.gml.gz",
+      expand("outputs/stats/{ksize}/invertebrate/{genome}.{suffix}",
+             ksize=[31], genome=config['genomes'], suffix=['stats', 'uniquekmers'])
+
+rule stats:
+    input:
       expand("outputs/stats/{ksize}/invertebrate/{genome}.stats",
              ksize=[31], genome=config['genomes'])
 
-'''
+rule kmers:
+    input:
+      expand("outputs/stats/{ksize}/invertebrate/{genome}.uniquekmers",
+             ksize=[31], genome=config['genomes'])
+
 rule unique_kmers:
-    output: "outputs/{organism}.{ksize}.unique"
-    input: "inputs/{organism}.fa.gz"
+    input: "genomes/refseq/invertebrate/{genome}.fna.gz"
+    output: "outputs/stats/{ksize}/invertebrate/{genome}.uniquekmers"
     params: ksize="{ksize}"
     threads: 4
     shell: """
         OMP_NUM_THREADS={threads} unique-kmers.py -k {params.ksize} -e 0.01 --report {output} {input}
     """
-'''
 
 rule gt_stats:
     input: graph="outputs/cdbg/{ksize}/invertebrate/{genome}.gml.gz"
