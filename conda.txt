@@ -1,7 +1,9 @@
 # This file may be used to create an environment using:
 # $ conda create --name <env> --file <this file>
 # platform: linux-64
+matplotlib=1.5.1=np111py35_0
 openssl=1.0.2h=0
+pandas=0.18.1=np111py35_0
 pip=8.1.1=py35_1
 python=3.5.1=0
 readline=6.2=2
