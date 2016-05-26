@@ -83,29 +83,38 @@ names(motif.colors) <- levels(motif.graphs$iso_class)
 motif.graphs$color <- motif.colors
 motif.graphs$filename <- sapply(motif.graphs$iso_class, function (item) { paste('Iso', item, '.ps', sep='')})
 
-p = ggplot(data = motif.data, aes(x=count))
+p = ggplot(data = all.data, aes(x=count))
 p + facet_grid(iso_class ~ motif_size, labeller = label_both) + 
   scale_x_continuous(trans='log10') +
   geom_histogram(bins=100) +
   xlab('Number of Motifs') +
   ylab('Count')
 
-ggplot(data = motif.data, aes(x=count, fill=iso_class)) +
+ggplot(data = all.data, aes(x=count, fill=iso_class)) +
   facet_grid(motif_size ~ ., labeller = label_both) +
-  scale_x_continuous(trans='log10') +
+  scale_fill_manual(values=motif.graphs$color, name='Isoform\nClass') +
+  scale_x_continuous(trans='log10', name=expression('log'[10]~'Count')) +
+  ylab(label='Density') +
   geom_density(alpha=0.3) +
   theme_bw()
+ggsave('iso_class_density.png', dpi=300)
 
 
 
 plotMotifs <- function (data) {
   plot.new()
+
   nrows = length(data$graph)
   ncols = 1
-  par(mai=c(0,0,0,0), mar=c(0,0,0,0), bg=NA)
-  layout(matrix(c(1:length(data$graph)), nrows, ncols, byrow=TRUE),
-         widths=rep(1, ncols), heights = rep(1, nrows), respect=TRUE)
-  layout.show(length(data$graph))
+  #png(filename ='motifs.png', width=ncols, height=nrows, res=300)
+  par(mfrow=c(nrows,1),
+      pin=c(nrows, ncols),
+      mai=c(0,0,0,0), 
+      mar=c(0,0,0,0),
+      oma=c(0,0,1,0),
+      bg='white',
+      xpd=NA)
+  #png(filename ='motifs.png', width=ncols, height=nrows, res=300)
   for (i in 1:length(data$graph)) {
     iso = data$iso_class[[i]]
     g = data$graph[[i]]
@@ -119,15 +128,19 @@ plotMotifs <- function (data) {
                 vertex.label.color = "white",
                 vertex.label.family = "sans",
                 edge.width=1,
-                margin=c(1.0, 0, 1.0, 0),
                 edge.color="black",
-                asp=.75)
-                #main=paste('Iso ', iso))
+                asp=1)
+    mtext(paste('Iso', iso), side = 1, line = -5, adj = 0.3, cex = .8,col = "black")
   }
-  grid.echo()
-  a <- grid.grab(wrap=TRUE)
-  a
+  #dev.off()
+  #par(bg=NA)
+  #plot.new()
+  #dev.copy(png, 'motifs.png', width=ncols, height=nrows, res=300)
+  #grid.echo()
+  #a <- grid.grab(wrap=TRUE)
+  #a
 }
+plotMotifs(motif.graphs)
 
 saveMotifs <- function (data) {
 
@@ -250,22 +263,14 @@ names(motif.data) <- sapply(names(motif.data), function (n) { paste('Iso', n)})
 names(motif.data) <- as.factor(names(motif.data))
 motif.corr <- reorder_cormat(round(cor(motif.data), 3))
 
-
-g <- ggplot(melt(motif.corr), aes(X1, X2, fill = value)) +
-  geom_tile(color = "white") +
-  scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
-                       midpoint = 0, limit = c(-1,1), space = "Lab", 
-                       name="Pearson\nCorrelation") +
-  theme_minimal() +
-  coord_fixed() +
-  scale_x_discrete(labels=motif.glyph.axis())
-print(ggheatmap)
-
-grid.arrange(plotMotifs(motif.graphs),
-             ggcorr(motif.data, nbreaks = 10),
-             widths=c(3, 12),
-             heights=c(3, 3, 3),
-             layout_matrix=rbind(c(NA,2), 
-                                 c(1,2),
-                                 c(NA,2)))
-ggcorr(motif.data, nbreaks = 10)
+corrplot(motif.corr, 
+         method = "circle", 
+         tl.cex = 0.93, 
+         order = "hclust", 
+         ddrect = 3,
+         mar=rep(3,4), 
+         cl.ratio=0.1, 
+         cl.length=5, 
+         title='Correlation Between Isoform Classes', 
+         tl.col='black', 
+         cl.pos='b')
