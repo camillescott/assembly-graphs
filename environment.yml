@@ -8,3 +8,5 @@ dependencies:
 - openssl=1.0.2h=0
 - pandas=0.18.1=np111py35_0
 - python=3.5.1=0
+- pyyaml=3.11=py35_1
+- yaml=0.1.6=0
